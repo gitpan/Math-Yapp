@@ -1,0 +1,7 @@
+Revision history for Perl extension Math::Yapp.
+
+1.01  Wed Apr 17 23:46:36 2013
+	- original version; created by h2xs 1.23 with options
+		-XA -n Math::Yapp
+
+This is the first release.  No changes to report.
