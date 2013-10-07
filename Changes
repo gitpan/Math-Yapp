@@ -1,7 +1,16 @@
 Revision history for Perl extension Math::Yapp.
 
-1.01  Wed Apr 17 23:46:36 2013
+0.01  Wed Apr 17 23:46:36 2013
 	- original version; created by h2xs 1.23 with options
 		-XA -n Math::Yapp
 
 This is the first release.  No changes to report.
+
+0.02  Sun Oct 06 23:33:28 2013 
+      Successfully released to CPAN a couple of days ago and finally
+      managed to see what the POD looks like.  YIKES!  This inspired
+      two modifications:
+      - Immediately set to correcting typos and unclear remarks in the POD.
+        (I doubt it's perfect now.)
+      - Added method Yapp_negate_roots(), which produces a polynomial whose
+        roots are the negatives of the given polynomial.

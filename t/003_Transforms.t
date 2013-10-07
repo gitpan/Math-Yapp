@@ -65,6 +65,19 @@ $result = $x4r->Yapp_eval($expect_root);    # Is this really a root?
 my $close_enough = (abs($result) <= $margin) ? 1:0;
 is($close_enough, 1, "Test if one known root has really been reduced\n");
 
+# Now see about negating signs of the roots.
+#
+my @p_roots = (1,2,-3,cplx(4,1),cplx(4,-1));	# Roots before negation
+my @n_roots = map {-$_} @p_roots;               # Roots after negation
+my $p_yapp = Yapp_by_roots(\@p_roots);          # Create polynomial by roots
+my $n_yapp = $p_yapp->Yapp_negate_roots();      # Negate roots of original Yapp
+my $ok_nroots = 0;								# Count valid negated roots
+foreach my $nroot (@n_roots)
+{
+  if (abs($n_yapp->Yapp_eval($nroot) ) < $margin) {$ok_nroots++;}
+}
+is($ok_nroots, 5, "Test if roots have been successfully negated\n");
+
 # Now for derivative
 #
 my @d_list = (-3,4,5,-8,5,-13,-12,2);   # For a 7th degree Yapp
@@ -132,6 +145,6 @@ my $i_val = $i_yapp->Yapp_integral(@limits);
 printf("Integral of <%s> from %4.2f to %4.2f = %8.5f\n",
        $i_yapp->Ysprint(), $limits[0], $limits[1], $i_val);
 
-print("End of transofrm tests\n");
+print("End of transform tests\n");
 done_testing();
 exit;

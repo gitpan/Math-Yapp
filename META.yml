@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:               Math-Yapp
-version:            1.01
+version:            0.02
 abstract:           Perl extension for working with Polynomials.  Yes, I know
 author:
     - Jacob Salomon <jakesalomon@yahoo.com>

@@ -53,7 +53,7 @@ our @EXPORT = qw(Yapp Yapp_interpolate Yapp_by_roots
                  Yapp_decimals Yapp_print0 Yapp_start_high Yapp_margin
                  Csprint); # Unexport Csprint after debug
 
-our $VERSION = '1.01';
+our $VERSION = '0.02';
 
 my $class_name = "Math::Yapp";  # So I don't have to use the literal in tests
 my $class_cplx = "Math::Complex";   # Same idea - avoid literal use
@@ -1432,6 +1432,7 @@ sub Yapp_eval
 #  }
 #  return $sumval;               #(OK last addition was wasted)
 }
+#
 #-------------------------------------------------------------------------------
 # Yapp_reduce: Reduce the roots of a polynomial by the indicated amount.
 # This is part of Horner's method for approximating the roots but will not
@@ -1509,6 +1510,29 @@ sub Yapp_reduce
 }
 #
 #-------------------------------------------------------------------------------
+# Yapp_negate_roots(): Returns a polynomial whose roots are the nagatives of the
+#                      roots of the given polynomial.  Easy trick: Negate the
+#                      coefficient of every odd-exponent term.
+#
+# Parameter:
+# - (Implicit) The Yapp reference
+# Returns:
+# - A new Yapp with negated roots
+#-------------------------------------------------------------------------------
+#
+sub Yapp_negate_roots
+{
+  my $self = shift(@_);         # The only parameter I care about
+  my $ryapp = Yapp($self);      # Copy to another polynomial
+  my $coefref = $ryapp->{coeff};
+  for (my $clc = 1; $clc <=$#{$coefref}; $clc+=2)   # Odd indexed terms only
+  {
+    $coefref->[$clc] = - ($coefref->[$clc]) #(If it was 0, no harm done)
+  }
+  return $ryapp
+}
+#
+#-------------------------------------------------------------------------------
 # Derivative and antiderivative i.e. indefinite integral.
 # In both cases, we will store the transformed polybnomial back into the
 # Yapp structure because they will very likely be resused for other stuff.
@@ -1524,6 +1548,7 @@ sub Yapp_reduce
 #   the given Yapp.
 # - Side effect: A new array of Yapp references to all the derivatives is
 #   now hanging off the given Yapp structure. @{derivatives}
+#-------------------------------------------------------------------------------
 #
 sub Yapp_derivative
 {
@@ -1667,6 +1692,7 @@ sub Yapp_integral
 # Returns:
 # - An array of solutions, which may include repeated values owing to repeated
 #   roots.  (Not a reference but the array otself.)
+#-------------------------------------------------------------------------------
 #
 sub Yapp_solve
 {
@@ -2717,17 +2743,19 @@ Copyright (C) 2013 by Jacob Salomon
 
 =head1 SYNOPSIS
 
-C<use Math::Complex;>    # Optional but a very good idea, since solving a
-                           polynomial often yields complex numbers
+C<use Math::Complex;>
 
 C<use Math::Yapp;>
+
+The "Math::Complex is optional but a very strongly recommended, since solving a
+polynomial often yields complex numbers
 
 =head2 Constructors
 
 C<$yp = Math::Yapp->>C<new();>         # Degenerate polynomial - no terms
 
-While the new() method is certainly available, your code will look
-cleaner if you use this form:
+While the new() method is certainly available, your code will look cleaner if
+you use this form:
 
 C<$yp = Yapp(parameter(s));     # Examples follow>
 
@@ -2737,26 +2765,29 @@ C<$yp = Yapp(1, -2.178, 3.14, -cplx(1,-3), 5);>
 
 Yields:  5x^4 +(-1+3i)x^3 +3.14x^2 -2.178x +1
 
-=head3 Same as above, only passed as a reference to an array:
+=head3 Same as above, only passed as a I<reference> to an array:
 
 C<my @coef_list = (1, -2.178, 3.14, -cplx(1,-3), 5);>
 
 C<$yp = Yapp(\@coef_list);>
 
-Generated from a string: Note that the sign MUST precede each term with no
-intervening space; a space separating the sign from the term may mess up the
-matching pattern. Yes, the + sign is optional for the first term in the string.
+=head3 Generated from a string
+
+You can also generate the polynomial from a string: Note that the sign MUST
+precede each term with no intervening space; a space separating the sign from
+the term may mess up the matching pattern. Yes, the + sign is optional for the
+first term in the string.
 
 C<$yp =  Yapp("5x^4 +(-1+3i)x^3 +3.14x^2 -2.178x +1");>
 
-The Yapp() constructor function has one additional feature that was awkward to
-implement in the new() constructor: An explicit copy constructor:
+Note that the order of the terms is unimportant; they get sorted out
+automatically as I piece together the structure by exponent.
 
-Copy from the above Yapp polynomial [referenced by] $yp:
+=head3 Copy Constructor
 
 C<$yp1 = Yapp($yp);> # Clones $yp to an identical copy at a different reference
 
-=head2 Constructors by interpolation
+=head3 Constructors by interpolation
 
 C<$ypl = Yapp_interpolate(\@xvals, \@yvals);> # Perform Lagrange interpolation
 
@@ -2771,23 +2802,20 @@ the third array [reference] if for the desired derivative at each point.
 (At this time, the author waives Hermite interpolation for more than the first
 derivative. :-)
 
-=head2 Constructing a Yapp polynomial from its roots
+=head3 Constructing a Yapp polynomial from its roots
 
 C<$yp = Yapp_by_roots(\@root_list);> # Pass reference to an array of roots
 
-C<$yp = Yapp_by_roots(1, 2, -4, cplx(3,4), cplx(3,-1));>
-                                     # Pass a complete array to constructor
+C<$yp = Yapp_by_roots(1, 2, -4, cplx(3,4), cplx(3,-1));
+                                     # Pass a complete array to constructor>
 
 =head2 Arithmetic of Yapp Polynomials
 
 =head3 Unary Operations
 
-C<$yp2 = !$yp;                 # Change the signs of all coefficients>
+C<$yp2 = !$yp;>                # Change the signs of all coefficients
 
-C<$yp2 = $yp1->>C<negate();>    # (The overloaded function)
-
-C<$yp2 = ~$yp;                  # Conjugate complex coefficients>
-
+C<$yp2 = ~$yp;                 # Conjugate complex coefficients>
 
 =head3 Addition and Subtraction
 
@@ -2799,7 +2827,7 @@ C<$yp += $yp3;              # Add another polynomial to this one>
 
 C<$yp = $yp1 + $yp2;        # Add two polynomials, term-by-term>
 
-Subtracting polynomials:  Behaved pretty much like the adds so we are
+Subtracting polynomials:  Behaves pretty much like the adds so we are
 not inclucing all possible examples
 
 C<$yp -= $yp3;              # Subtract $yp3 from $yp in place>
@@ -2814,8 +2842,7 @@ C<$yp = $yp1 * 42;          # Multiply as above but return a new polynomial>
 
 C<$yp = 42 * $yp1;          # (Same idea as above)>
 
-C<$yp *= $yp2;              # Multiply the indicated polynomial by another,
-in place.>
+C<$yp *= $yp2;   # In-place multiplication of a Yapp polynomial by another>
 
 C<$yp = $yp1 * $yp2;        # Same as above, but not in-place>
 
@@ -2827,10 +2854,12 @@ evaluate a polynomials at, say, x = 3, it is equivalent to dividing by the
 small polynomial (x - 3).  Hence, for Yapp_eval (described later), you have
 the option of getting the quotient besides the evaluation
 
-Documented methods and functions:
+=head2 Documented methods and functions:
 
-Ysprint() formats a Yapp object into a string, suitable for printing:
-Example: printf("My yapp is: %s\n", Ysprint($yp1));
+=head3 Format a polynomial for printing
+
+c<Ysprint()> formats a Yapp object into a string, suitable for printing:
+Example: C<printf("My yapp is: %s\n", $yp1->>C<Ysprint());>
 
 By default, Ysprint formats the polynmial as follows:
 
@@ -2858,44 +2887,93 @@ variables:
 =back
 
 In all three cases, the newly value is returned.  Oh, and if you call
-it without a parameter, it will just return the currently set value
+it without a parameter, it will just return the currently set value.
 
-C<my $high_expon = $yp->>C<degree();>  # Get the degree of the polynomial
+You can also override the default precision by supplying a parameter to Ysprint;
 
-C<$yp->variable>>C<("Xy");>         # Sets the variable used in printing a
-                                      polynomial. Default: "X"
+C<printf("My yapp is: %s\n", $yp1->>C<Ysprint(6));>
 
-C<my $varname = $yp->>C<variable();>    # Returns that variable string
+The above example will print the coefficients with 6 decimal places, ignoring
+the default set by Yapp_decimals(),
 
-C<my $nterm = $yp->>C<coefficient(3);>  # Retrieve the coefficient on the term
-                                          of degree 3 (in this example)
+=head3 Setting and retrieving the display variable
 
-C<my $realvar = $yp->>C<Yapp_eval($areal);> # Plug the parameter into the
-                                              polynomial and return the value
+By default, when formatting the polynomial for display, the "variable" will be
+the letter "X".  You can change this to any other string using the variable()
+method:
 
-C<my $cplxvar = $yp->>C<Yapp_eval($acplx);> # Works identially for complex
-                                              numbers, except that now it
-                                              returns a reference to a
-                                              Math::Complex
+C<$yp->>C<variable("Xy");      # Sets the "variable" to "Xy">
+
+If you just want to know what variable is set for display, call variable()
+with no parameter:
+
+C<my $varname = $yp->>C<variable();  # Returns that variable string>
+
+=head3 Query individual coefficients
+
+C<my $nterm = $yp->>C<coefficient(3);    # Retrieve the X^3 coefficient>
+
+=head3 Retrieve the nth degree coefficient:
+
+C<my $high_expon = $yp->>C<degree(); # Returns the degree of the polynomial>
+
+=head3 Evaluating a polynomial at specified values
+
+C<my $realvar = $yp->>C<Yapp_eval($areal);>
+
+The above plugs the parameter into the polynomial and return the value of the
+polynomial at that point.  This works identically when plugging in a complex
+number but you should be prepared to have a complex number returned:
+
+C<my $cplxvar = $yp->>C<Yapp_eval($acplx);> 
+
+When you evaluate a polynomial at a certain value, say 3, it is like dividing
+the polynomial by (X - 3); the returned value is the "remainder".  (You surely
+learned this in high school.)  Now, what of the quotient?  Well, just ask and
+you shall receive:
 
 C<my ($eval, $quotient) = $yp->>C<Yapp_eval($areal);>
-# This returns the evaluation and also a ref to a new, lower-degree polynomial
-  that is the quotient.
+
+Of course, this quotient is of reduced degree.
+
+=head3 Reduce the roots of a polynomial by a number
 
 C<my $ypr = $yp->>C<Yapp_reduce(3);>
-# Return a reference to a new polynomial whose roots are those of of the given
-  polynomial, reduced [in this case] by 3
+
+This applies Horner's method of successive synthetic division to the polyomial.
+
+=head3 Negate the roots of a polynomial
+
+C<$nr_yapp = $yp->>C<Yapp_negate_roots();>
+
+This produces a polynomial whose roots are the negatives of the roots of the
+original polynomial.
+
+=head3 Derivatives and Integrals
 
 C<my $dyp = $yp->>C<Yapp_derivative(n);>
-# Returns [a ref to] another polynomial that is the nth derivative of this one.
+
+This returns [a ref to] another polynomial that is the nth derivative of this
+one.  A couple of little notes on this:
+
+=over 3
+
+=item * If n is 0, it just returns the original Yapp reference and you've
+accomplished very little.
+
+=item * If n is omitted, it assumes a default value of 1:
+
+=back
 
 C<my $i_ref = $yp->>C<Yapp_integral();>
-# Returns a reference to a polynomial whose derivative is the given Yapp.
-  Inserts a 0 for the arbitrary constant.
+
+This returns a reference to a polynomial whose derivative is the given Yapp.
+We insert a 0 for the arbitrary constant.
 
 C<my $i_val = $yp->>C<Yapp_integral($low, $high);>
-# Calculates the value of the definite integral of the given Yapp in the given
-  interval.
+
+This calculates the value of the definite integral of the given Yapp in the
+given interval.
 
 =head3 Solution Set for Polynomials
 
