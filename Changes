@@ -15,3 +15,15 @@ Revision history for Perl extension Math::Yapp.
       - Added method Yapp_negate_roots(), which produces a polynomial whose
         roots are the negatives of the given polynomial.  (I hadn't realized
         that omission until I read the POD.)
+
+1.03  Mon Oct 14 11:20:12 2013 
+      - Commented out [use Math::BigFLoat;] and the call to
+        Math::BigFLoat->accuracy() in the BEGIN block.  This because the
+        BUGS section of Math::Complex warns me not attempt to use BigFloat.
+        I left these stantements in there as comments as a reminder that I
+        need to do something about the accuracy; 64 (or 80?)-bit floats
+        don't quite cut it for polynomials above degree 8.
+
+        Yes, this leaves a no-op BEGIN block.  But who knows what I'll come
+        up with in a future release?
+----

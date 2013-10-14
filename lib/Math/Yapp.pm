@@ -25,6 +25,8 @@ use strict;
 use warnings;
 use Carp;
 use Math::Complex;
+#use Math::BigFloat;        # Needed for accuracy(), though I don't do
+#                           # anything with that yet.
 use Storable 'dclone';
 use Data::Dumper;               # For debugging
 use Scalar::Util qw(refaddr);   # Gets pointer values. Also for debugging.
@@ -52,7 +54,7 @@ our @EXPORT = qw(Yapp Yapp_interpolate Yapp_by_roots
                  Yapp_decimals Yapp_print0 Yapp_start_high Yapp_margin
                  Csprint); # Unexport Csprint after debug
 
-our $VERSION = '1.02';
+our $VERSION = '1.03';
 
 my $class_name = "Math::Yapp";  # So I don't have to use the literal in tests
 my $class_cplx = "Math::Complex";   # Same idea - avoid literal use
@@ -169,7 +171,8 @@ our $testmode = 0;      # Turned on by class method Yapp_testmode()
 
 BEGIN
 {
-  Math::BigFloat->accuracy(32);   # For when I take out the big stick!
+ #Math::BigFloat->accuracy(32);   # In case I decide on a way to use complex
+                                  # numbers with BigFloat
 }
 #
 #------------------------------------------------------------------------------
