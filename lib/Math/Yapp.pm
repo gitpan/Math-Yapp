@@ -25,7 +25,6 @@ use strict;
 use warnings;
 use Carp;
 use Math::Complex;
-use Math::BigFloat;
 use Storable 'dclone';
 use Data::Dumper;               # For debugging
 use Scalar::Util qw(refaddr);   # Gets pointer values. Also for debugging.
@@ -53,7 +52,7 @@ our @EXPORT = qw(Yapp Yapp_interpolate Yapp_by_roots
                  Yapp_decimals Yapp_print0 Yapp_start_high Yapp_margin
                  Csprint); # Unexport Csprint after debug
 
-our $VERSION = '0.02';
+our $VERSION = '1.02';
 
 my $class_name = "Math::Yapp";  # So I don't have to use the literal in tests
 my $class_cplx = "Math::Complex";   # Same idea - avoid literal use
